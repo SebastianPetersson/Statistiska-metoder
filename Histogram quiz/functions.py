@@ -28,10 +28,10 @@ def make_plot(data, cumulative=False):
     plt.style.use('dark_background')
     fig, ax = plt.subplots(figsize=(6,4), dpi=100)
     if cumulative:
-        ax.hist(data, bins=20, cumulative=True, density=True, histtype='step')
+        ax.hist(data, bins=40, cumulative=True, density=True, histtype='step')
         ax.set_title('Guess the distribution (ogive)', fontsize=16)
     else:
-        ax.hist(data, bins=20, alpha=0.8)
+        ax.hist(data, bins=40, alpha=0.8)
         ax.set_title('Guess the distribution (histogram)', fontsize=16)
     fig.tight_layout()
 
