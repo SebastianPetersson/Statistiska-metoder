@@ -5,6 +5,11 @@ import random
 import os
 import json, time
 
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+SAVE_DIR = os.path.join(BASE_DIR, "data")
+os.makedirs(SAVE_DIR, exist_ok=True)
+SAVE_PATH = os.path.join(SAVE_DIR, "Played_games.json")
+
 os.environ['SDL_VIDEO_WINDOW_POS'] = "100,100"
 rng = np.random.default_rng()
 clock = pygame.time.Clock()
@@ -12,25 +17,26 @@ showing_feedback = False
 
 pygame.init()
 
-WIDTH, HEIGHT = 1200, 800
-screen = pygame.display.set_mode((WIDTH, HEIGHT))
+W, H = 1200, 800
+screen = pygame.display.set_mode((W, H))
 font = pygame.font.SysFont("Arial", 24)
 
 distributions = {
-    'Integers' : lambda: rng.integers(100, size=100),
-    'Uniform' : lambda: rng.uniform(size=100),
-    'Normal' : lambda: rng.normal(size=100),
-    'Binomial' : lambda: rng.binomial(n=10,p=0.3,size=100),
-    'Gamma' : lambda: rng.gamma(shape=1.0, scale=0.9, size=100),
-    'Geometric' : lambda: rng.geometric(p=0.31, size=100)
+    'Integers' : lambda: rng.integers(100, size=1000),
+    'Uniform' : lambda: rng.uniform(size=1000),
+    'Normal' : lambda: rng.normal(size=1000),
+    'Binomial' : lambda: rng.binomial(n=10,p=0.3,size=1000),
+    'Negative Binomial' : lambda: rng.negative_binomial(n=10, p=0.3, size=1000),
+    'Gamma' : lambda: rng.gamma(shape=1.0, scale=0.9, size=1000),
+    'Geometric' : lambda: rng.geometric(p=0.31, size=1000)
 }
 
 score = 0
-rounds = 5
+rounds = 10
 current_round = 1
 running = True
 
-dist_name, plot_surface, x, y, input_box = new_round(distributions=distributions, WIDTH=WIDTH, HEIGHT=HEIGHT)
+dist_name, plot_surface, x, y, input_box = new_round(distributions=distributions, W=W, H=H)
 color_inactive = pygame.Color('lightskyblue3')
 color_active = pygame.Color('dodgerblue2')
 color = color_active
@@ -38,7 +44,7 @@ input_text = ""
 feedback = ""
 active_box = True
 
-start_screen(screen, WIDTH, HEIGHT)
+start_screen(screen, W, H, fade_ms=2000)
 
 while running:
     for event in pygame.event.get():
@@ -68,7 +74,7 @@ while running:
                     else:
                         current_round += 1
                         dist_name, plot_surface, x, y, input_box = new_round(
-                            distributions=distributions, WIDTH=WIDTH, HEIGHT=HEIGHT
+                            distributions=distributions, W=W, H=H
                         )
                         input_text = ""
                         feedback = ""
@@ -80,7 +86,7 @@ while running:
                 input_text = input_text[:-1]
 
             else:
-                if len(input_text) < 15:
+                if len(input_text) < 20:
                     input_text += event.unicode
 
 
@@ -93,7 +99,7 @@ while running:
     if feedback:
         fb_color = (0,255,0) if feedback.startswith("Correct") else (255,0,0)
         fb_surface = font.render(feedback, True, fb_color)
-        screen.blit(fb_surface, (WIDTH//2 - fb_surface.get_width()//2, input_box.y + 50))
+        screen.blit(fb_surface, (W//2 - fb_surface.get_width()//2, input_box.y + 50))
 
     round_surface = font.render(f"Round {current_round} / {rounds}", True, (200,200,200))
     screen.blit(round_surface, (10,10))
@@ -103,7 +109,7 @@ while running:
 
 screen.fill((0,0,0))
 end_surface = font.render(f"Quiz finished! Score: {score}/{rounds}", True, (255,255,255))
-screen.blit(end_surface, (WIDTH//2 - end_surface.get_width()//2, HEIGHT//2))
+screen.blit(end_surface, (W//2 - end_surface.get_width()//2, H//2))
 
 game_data = {
     "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
@@ -111,9 +117,10 @@ game_data = {
     "score": score
 }
 
-with open("Played_games.json", "a", encoding="utf-8") as f:
+
+with open(SAVE_PATH, "a", encoding="utf-8") as f:
     f.write(json.dumps(game_data) + "\n")
-    
+
 pygame.display.flip()
 pygame.time.wait(1000)
 pygame.quit()
