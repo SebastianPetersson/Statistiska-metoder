@@ -1,34 +1,47 @@
 import numpy as np
+import os
 
 class DataLoader:
-    def __init__(self, doc=r"../Data/measurements.txt"):
+    def __init__(self, doc=r"../Data/measurements.txt", cache_file="cache.npy", cache_headers="headers.npy"):
         self.doc = doc
+        self.cache_file = cache_file
+        self.cache_headers = cache_headers
         self.data = None
         self.headers = None
         self._loaded = False
 
     def _load_data(self):
         if not self._loaded:
-            print(">> Laddar filen nu (lazy load)...")
-            with open(self.doc, "r") as f:
-                header_line = next(f).strip().lstrip("#").split()
-                headers = []
-                skip_next=False
-                for i, h in enumerate(header_line):
-                    if skip_next:
-                        skip_next = False
-                        continue
-                    if i + 1 < len(header_line) and header_line[i+1].startswith("("):
-                        headers.append(h + header_line[i+1])
-                        skip_next = True
-                    else:
-                        headers.append(h)
-                self.headers = headers
-                
-                lines = [line.strip().split() for line in f if not line.startswith("#")]
-                self.data = np.array(lines, dtype= float)
-                self._loaded = True
+            if os.path.exists(self.cache_file) and os.path.exists(self.cache_headers):
+                print(">> Laddar från cache ...")
+                self.data = np.load(self.cache_file)
+                self.headers = np.load(self.cache_headers)
+            else:
+                print(">> Laddar från textfil och sparar cache")
+                with open(self.doc, "r") as f:
+                    header_line = next(f).strip().lstrip("#").split()
+                    headers = []
+                    skip_next=False
+                    for i, h in enumerate(header_line):
+                        if skip_next:
+                            skip_next = False
+                            continue
+                        if i + 1 < len(header_line) and header_line[i+1].startswith("("):
+                            headers.append(h + header_line[i+1])
+                            skip_next = True
+                        else:
+                            headers.append(h)
+                    self.headers = headers
+                    
+                    lines = [line.strip().split() for line in f if not line.startswith("#")]
+                    self.data = np.array(lines, dtype= float)
 
+                np.save(self.cache_file, self.data)
+                np.save(self.cache_headers, np.array(self.headers))
+            self._loaded = True
+
+    def is_loaded(self):
+        return self._loaded
     def get_rows(self):
         self._load_data()
         return self.data
