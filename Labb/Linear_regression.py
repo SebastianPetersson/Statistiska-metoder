@@ -13,6 +13,10 @@ class LinearRegression:
         self.sigma2 = None
         self.C = None
 
+    def _check_fitted(self):
+        if self.b is None or self.X is None or self.y is None:
+            raise RuntimeError('Model must be fitted before calling this method.')
+        
     def fit(self, X, y):
 
         self.y = y
@@ -33,7 +37,8 @@ class LinearRegression:
         self.C = XtX_inv
 
     def var(self):
-
+        self._check_fitted()
+        
         n = self.n
         d = self.d
 
@@ -41,5 +46,20 @@ class LinearRegression:
         SSE = np.sum((self.y - y_hat)**2)
         self.sigma2 = SSE / (n-d-1)
 
-    def 
+        return self.sigma2
         
+    def std(self):
+        self._check_fitted()
+
+        sigma2 = self.sigma2
+        sigma = np.sqrt(sigma2)
+
+        return sigma
+    
+    def RMSE(self):
+        self._check_fitted()
+
+        if self.sigma2 == None:
+            self.var()
+            
+        return np.sqrt(self.sigma2)
