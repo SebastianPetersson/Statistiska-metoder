@@ -24,4 +24,22 @@ class LinearRegression:
         self.n = X_matrix.shape[0]
         self.d = X_matrix.shape[1] - 1
 
+        XtX = X_matrix.T @ X_matrix
+        XtX_inv = np.linalg.pinv(XtX)
+        XtY = X_matrix.T @ y
 
+        self.b = XtX_inv @ XtY
+
+        self.C = XtX_inv
+
+    def var(self):
+
+        n = self.n
+        d = self.d
+
+        y_hat = self.X @ self.b
+        SSE = np.sum((self.y - y_hat)**2)
+        self.sigma2 = SSE / (n-d-1)
+
+    def 
+        
