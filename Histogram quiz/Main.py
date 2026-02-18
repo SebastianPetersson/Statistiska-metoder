@@ -20,9 +20,12 @@ pygame.init()
 W, H = 1200, 800
 screen = pygame.display.set_mode((W, H))
 font = pygame.font.SysFont("Arial", 24)
+background_path = os.path.join(SAVE_DIR, "analyst.png")
+background_img = pygame.image.load(background_path).convert()
+background_img = pygame.transform.scale(background_img, (W, H))
+
 
 distributions = {
-    'Integers' : lambda: rng.integers(100, size=1000),
     'Uniform' : lambda: rng.uniform(size=1000),
     'Normal' : lambda: rng.normal(size=1000),
     'Binomial' : lambda: rng.binomial(n=10,p=0.3,size=1000),
@@ -32,7 +35,7 @@ distributions = {
 }
 
 score = 0
-rounds = 10
+rounds = 20
 current_round = 1
 running = True
 
@@ -44,7 +47,7 @@ input_text = ""
 feedback = ""
 active_box = True
 
-start_screen(screen, W, H, fade_ms=2000)
+start_screen(screen, W, H, fade_ms=2000, background_img=background_img)
 
 while running:
     for event in pygame.event.get():
@@ -90,8 +93,13 @@ while running:
                     input_text += event.unicode
 
 
-    screen.fill((0,0,0))
+    screen.blit(background_img, (25,0))
+    darken = pygame.Surface((W, H))
+    darken.set_alpha(120)
+    darken.fill((0, 0, 0))
+    screen.blit(darken, (0,0))
     screen.blit(plot_surface, (x, y))
+
     pygame.draw.rect(screen, color, input_box, 2)
     text_surface = font.render(input_text, True, (255,255,255))
     screen.blit(text_surface, (input_box.x + 5, input_box.y + 5))
@@ -107,7 +115,7 @@ while running:
     pygame.display.flip()
     clock.tick(30)
 
-screen.fill((0,0,0))
+screen.blit(background_img, (25,0))
 end_surface = font.render(f"Quiz finished! Score: {score}/{rounds}", True, (255,255,255))
 screen.blit(end_surface, (W//2 - end_surface.get_width()//2, H//2))
 
@@ -122,5 +130,5 @@ with open(SAVE_PATH, "a", encoding="utf-8") as f:
     f.write(json.dumps(game_data) + "\n")
 
 pygame.display.flip()
-pygame.time.wait(1000)
+pygame.time.wait(3000)
 pygame.quit()

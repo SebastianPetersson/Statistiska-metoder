@@ -4,8 +4,10 @@ from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
 import numpy as np
 import random
 import os
+from scipy import stats
 
-def start_screen(screen, W, H, fade_ms):
+def start_screen(screen, W, H, fade_ms, background_img):
+
     font_large = pygame.font.SysFont('Arial',48)
     font_small = pygame.font.SysFont('Arial',30)
     title = font_large.render("Distribution Quiz", True, (255,255,255)).convert_alpha()
@@ -18,23 +20,31 @@ def start_screen(screen, W, H, fade_ms):
             if e.type==pygame.MOUSEBUTTONDOWN: return
         t = min(1.0, (pygame.time.get_ticks()-start)/fade_ms)
         a = int(255*t)
-        screen.fill((10,10,40))
+        screen.blit(background_img, (25, 0))
+
         tmp1, tmp2 = title.copy(), hint.copy()
         tmp1.set_alpha(a); tmp2.set_alpha(a)
-        screen.blit(tmp1, (W//2-title.get_width()//2,300))
-        screen.blit(tmp2, (W//2-hint.get_width()//2,360))
+        screen.blit(tmp1, (W//2-title.get_width()//2,320))
+        screen.blit(tmp2, (W//2-hint.get_width()//2, 400))
         pygame.display.flip(); clock.tick(60)
 
 
-def make_plot(data, cumulative=False):
-    plt.style.use('dark_background')
+def make_plot(data):
+    # plt.style.use('dark_background')
     fig, ax = plt.subplots(figsize=(6,4), dpi=100)
-    if cumulative:
+
+    mode = random.choice(['hist', 'cumulative', 'probplot'])
+
+    if mode == 'cumulative':
         ax.hist(data, bins=40, cumulative=True, density=True, histtype='barstacked')
         ax.set_title('Guess the distribution (ogive)', fontsize=16)
-    else:
+    elif mode == 'hist':
         ax.hist(data, bins=40, alpha=0.8, histtype='barstacked')
         ax.set_title('Guess the distribution (histogram)', fontsize=16)
+    elif mode == 'probplot':
+        stats.probplot(data, dist='norm', plot=ax)
+        ax.set_title('Guess the distribution ( QQ-plot (probplot))')
+
     fig.tight_layout()
 
     canvas = FigureCanvas(fig)
@@ -49,7 +59,7 @@ def make_plot(data, cumulative=False):
 def new_round(distributions, W, H):
     dist_name, generator = random.choice(list(distributions.items()))
     data = generator()
-    plot_surface = make_plot(data, cumulative=random.choice([True, False]))
+    plot_surface = make_plot(data)
     x = W//2 - plot_surface.get_width()//2
     y = H//2 - plot_surface.get_height()//2 + 50
     input_box = pygame.Rect(W//2 - 150, y + plot_surface.get_height() + 20, 300, 40)
