@@ -33,7 +33,7 @@ def make_plot(data):
     # plt.style.use('dark_background')
     fig, ax = plt.subplots(figsize=(6,4), dpi=100)
 
-    mode = random.choice(['hist', 'cumulative', 'probplot'])
+    mode = random.choice(['hist', 'probplot', 'cumulative', 'boxplot'])
 
     if mode == 'cumulative':
         ax.hist(data, bins=40, cumulative=True, density=True, histtype='barstacked')
@@ -41,9 +41,12 @@ def make_plot(data):
     elif mode == 'hist':
         ax.hist(data, bins=40, alpha=0.8, histtype='barstacked')
         ax.set_title('Guess the distribution (histogram)', fontsize=16)
-    elif mode == 'probplot':
+    if mode == 'probplot':
         stats.probplot(data, dist='norm', plot=ax)
         ax.set_title('Guess the distribution ( QQ-plot (probplot))')
+    if mode == 'boxplot':
+        ax.boxplot(data)
+        ax.set_title('Guess the distribution (boxplot)')
 
     fig.tight_layout()
 
